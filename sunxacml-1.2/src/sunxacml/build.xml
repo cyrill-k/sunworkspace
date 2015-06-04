@@ -1,0 +1,99 @@
+
+<!--
+ Copyright 2003-2004 Sun Microsystems, Inc. All Rights Reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+   1. Redistribution of source code must retain the above copyright notice,
+      this list of conditions and the following disclaimer.
+ 
+   2. Redistribution in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+
+ Neither the name of Sun Microsystems, Inc. or the names of contributors may
+ be used to endorse or promote products derived from this software without
+ specific prior written permission.
+ 
+ This software is provided "AS IS," without a warranty of any kind. ALL
+ EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING
+ ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
+ OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN MICROSYSTEMS, INC. ("SUN")
+ AND ITS LICENSORS SHALL NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY LICENSEE
+ AS A RESULT OF USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS
+ DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR ANY LOST
+ REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL,
+ INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY
+ OF LIABILITY, ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE,
+ EVEN IF SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+ You acknowledge that this software is not designed or intended for use in
+ the design, construction, operation or maintenance of any nuclear facility.
+-->
+
+<project name="sunxacml" default="build" basedir=".">
+
+  <description>
+    This is the Ant file that defines the build process for the SunXACML
+    open source project.
+  </description>
+
+  <!-- Some common locations -->
+  <property name="buildDir" location="build"/>
+  <property name="classDir" location="${buildDir}/classes"/>
+  <property name="docDir" location="${buildDir}/docs"/>
+  <property name="libDir" location="${buildDir}/lib"/>
+  <property name="srcDir" location="."/>
+
+  <!-- Values for the JavaDocs -->
+  <property name="projName" value="Sun's XACML Implementation"/>
+  <property name="projVersion" value="1.2"/>
+
+  <!-- Builds the project into debug-enabled class files -->
+  <target name="build">
+    <mkdir dir="${classDir}"/>
+    <javac includeAntRuntime="no" debug="on" deprecation="on"
+           srcdir="${srcDir}" destdir="${classDir}" classpath="${classDir}"/>
+  </target>
+
+  <!-- Removes all built files and all ~ files -->
+  <target name="clean">
+    <delete dir="${buildDir}"/>
+    <delete>
+      <fileset dir="." defaultexcludes="no" includes="**/*~"/>
+    </delete>
+  </target>
+
+  <!-- Build the JavaDocs from the source -->
+  <target name="doc" depends="build">
+    <javadoc sourcepath="${srcDir}" destdir="${docDir}"
+             classpath="${classDir}" packagenames="com.sun.*"
+             overview="${srcDir}/overview.html"
+             windowtitle="${projName}" doctitle="${projName}" author="no"
+             link="http://java.sun.com/j2se/1.4/docs/api">
+      <header>
+        <![CDATA[<font size="-1">Sun<sup>TM</sup>'s XACML Implementation
+        for Java<sup>TM</sup></font>]]>
+      </header>
+      <footer>
+        <![CDATA[<font size="-1">Sun's XACML Implementation Version
+        ${projVersion}</font>]]>
+      </footer>
+      <bottom>
+        <![CDATA[<font size="-1">Copyright 2003-2004 Sun Microsystems,
+        Inc. All rights reserved. Use is subject to license
+        terms.<p>Sun, Sun Microsystems, the Sun Logo, and Java are
+        trademarks or registered trademarks of Sun Microsystems, Inc. in
+        the US and other countries.</font>]]>
+      </bottom>
+    </javadoc>
+  </target>
+
+  <!-- Builds the jar file for the project classes -->
+  <target name="jar" depends="build">
+    <mkdir dir="${libDir}"/>
+    <jar destfile="${libDir}/sunxacml.jar" basedir="${classDir}"/>
+  </target>
+
+</project>

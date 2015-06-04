@@ -1,0 +1,25 @@
+/AbstractPolicy.java/1.11/Fri Jun  4 17:50:39 2004//
+/BasicEvaluationCtx.java/1.3/Fri Jun  4 17:50:39 2004//
+/EvaluationCtx.java/1.9/Sun Jun 13 23:20:17 2004//
+/Indenter.java/1.4/Wed Mar 17 18:03:37 2004//
+/MatchResult.java/1.2/Wed Mar 17 18:03:37 2004//
+/Obligation.java/1.7/Fri May 14 18:46:22 2004//
+/PDP.java/1.8/Fri Jun  4 17:50:39 2004//
+/PDPConfig.java/1.2/Wed Mar 17 18:03:37 2004//
+/ParsingException.java/1.2/Wed Mar 17 18:03:37 2004//
+/Policy.java/1.6/Wed Mar 17 18:03:37 2004//
+/PolicyReference.java/1.7/Fri Jun  4 17:50:39 2004//
+/PolicySet.java/1.5/Wed Mar 17 18:03:37 2004//
+/PolicyTreeElement.java/1.3/Wed Mar 17 18:03:37 2004//
+/ProcessingException.java/1.2/Wed Mar 17 18:03:37 2004//
+/Rule.java/1.6/Tue Mar 23 23:38:51 2004//
+/Target.java/1.8/Fri Jun  4 17:50:39 2004//
+/TargetMatch.java/1.6/Wed Mar 17 18:03:37 2004//
+/UnknownIdentifierException.java/1.2/Wed Mar 17 18:03:37 2004//
+/package.html/1.1.1.1/Thu Feb 13 22:19:10 2003//
+D/attr////
+D/combine////
+D/cond////
+D/ctx////
+D/finder////
+/ConfigurationStore.java/1.9/Wed Jul 14 00:40:54 2004//

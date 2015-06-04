@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Request xmlns="urn:oasis:names:tc:xacml:1.0:context"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:documents="urn:example:documents">
+  <Subject>
+    <Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:subject:subject-id"
+               DataType="urn:oasis:names:tc:xacml:1.0:data-type:rfc822Name">
+      <AttributeValue>seth@users.example.com</AttributeValue>
+    </Attribute>
+    <Attribute AttributeId="group"
+               DataType="http://www.w3.org/2001/XMLSchema#string"
+               Issuer="admin@users.example.com">
+      <AttributeValue>developers</AttributeValue>
+    </Attribute>
+  </Subject>
+  <Resource>
+    <ResourceContent>
+      <documents:Memo>
+        <documents:Audience>developers</documents:Audience>
+        <documents:Name>Compute Cycles</documents:Name>
+        <documents:Body>
+          There are now plenty of cycles available on server.example.com. 
+          Feel free to use them as needed.
+        </documents:Body>
+      </documents:Memo>
+    </ResourceContent>
+    <Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:resource:resource-id"
+               DataType="http://www.w3.org/2001/XMLSchema#string">
+      <AttributeValue>http://server.example.com/memos/memo17</AttributeValue>
+    </Attribute>
+  </Resource>
+  <Action>
+    <Attribute AttributeId="urn:oasis:names:tc:xacml:1.0:action:action-id"
+               DataType="http://www.w3.org/2001/XMLSchema#string">
+      <AttributeValue>read</AttributeValue>
+    </Attribute>
+  </Action>
+</Request>

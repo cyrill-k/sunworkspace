@@ -1,0 +1,69 @@
+
+SunXACML 1.2 Release - Change List
+---
+
+This is a quick list of changes that have happened since the 1.1 release. It
+is by no means an exhaustive list, but it should give you a good sense of
+what's going on if you've been using previous releases. For the most part, the
+APIs remained stable in the 1.2 release, though many methods were deprecated.
+Also, a few methods changed behavior (like the factory classes), but these are
+well documented in the new sections of the programmer's guide. Bottom line: if
+you've upgraded and you're seeing strange behavior, check the javadocs and
+the programmer's guide before posting the problem.
+
+New Features:
+
+  - The factory classes now provide generic interfaces so you can define new
+    factory implementations, and there are also methods for installing default
+    factories.
+  - A new ConfigurationStore class and an accompanying schema provide a simple
+    but powerful run-time configuration system for defining your PDPs and
+    factories.
+  - All the core classes now do basic logging of interesting messages.
+  - A new code module provides a simple test framework for running the standard
+    conformance tests.
+  - ResourceFinderModules are now given the EvaluationCtx to use in resolving
+    hierarchical information.
+  - The PDP class can now be queried directly with an EvaluationCtx for those
+    who don't want to use the standard XACML Request format. 
+  - Default parsing is now namesapce aware.
+  - EvaluationCtx can now be queried with XPath expressions.
+  - All collection mutability is now handled consistently, so there's no
+    chance of accidentally or intentionally changing internal state.
+  - Evaluatable now has a getChildren method so it's easier to walk the
+    Condition tree.
+  - All Results now include the resource-id by default.
+
+Refactored Code:
+
+  - All function classes are now publically consumable.
+  - The standard XACML features in each factory are now represented by standard
+    classes, and new convenience base classes let you build new factories
+    easily.
+  - EvaluationCtx is now an interface and there's a basic implementation which
+    is created from a Request. Combined with the new interface on PDP, this
+    lets you define new ways to query a PDP and represent your data,
+    especially useful if you don't want to use the standard XACML Request
+    format.
+
+Bug Fixes:
+
+  - Fixed a bug in the regexp function where the ^ and $ anchor characters
+    were being used incorrectly.
+  - Fixed Obligation encoding so generated policies are valid.
+  - Fixed SelectorModule so it now handles XML attributes correctly.
+  - Fixed SelectorModule so it now handles XML namespacing correctly, and
+    will prefix relative queries with the proper element.
+  - Fixed ResourceFinder so it queries the correct set of modules for
+    Descendant processing.
+  - Fixed the any-of-all and all-of-any functions to handle the correct
+    semantics with multiple values (this is actually based on a bug in the
+    XACML specification which is also being fixed).
+
+I think that's all the interesting details. This release represents a pretty
+significant jump in functionality, so there are other small changes, but
+they're better discovered by looking at the javadocs. Note that the javadocs
+are pretty clear about what changed between 1.1 and 1.2, so these changes
+should be pretty easy to pick out.
+
+Have fun!

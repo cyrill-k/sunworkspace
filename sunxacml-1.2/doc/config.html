@@ -1,0 +1,374 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+  <title>Sun's XACML Implementation Run-Time Configuration Guide</title>
+</head>
+<body bgcolor="white" text="black">
+  <center>
+    <h1>Sun's XACML Implementation</h1>
+    <h2>Run-Time Configuration Guide for Version 1.2</h2>
+    <i><font size="-1">Last Updated: July 11, 2004</font></i>
+  </center>
+
+  <p>
+
+  &nbsp;<a href="#intro">Introduction</a>
+  <p>
+  &nbsp;<a href="#schema">The Configuration Schema</a>
+  <br>
+  &nbsp;&nbsp;&nbsp;<a href="#schema-pdp">PDP Configuration</a>
+  <br>
+  &nbsp;&nbsp;&nbsp;<a href="#schema-factory">Factory Configuration</a>
+  <br>
+  &nbsp;&nbsp;&nbsp;<a href="#schema-tying">Tying Factories to PDPs</a>
+  <p>
+  &nbsp;<a href="#store">Supporting a Configuration: ConfigurationStore</a>
+  <p>
+  &nbsp;<a href="#example">Examples</a>
+  <br>
+  &nbsp;&nbsp;&nbsp;<a href="#example-1">A Simple Example</a>
+  <br>
+  &nbsp;&nbsp;&nbsp;<a href="#example-2">Configuring a Module</a>
+
+  <h2><a name="intro">Introduction</a></h2>
+  This guide describes the run-time configuration system, and the
+  associated XML schema introduced in the 1.2 release. The goal of this
+  system is to provide a simple, lightweight mechanism that lets anyone
+  using the SunXACML code optionally include some degree of dynamic
+  configuration for factories and PDPs. For reasons of security and
+  extensibility, this system is never used "automatically" (eg, simply
+  by setting a property). Instead, programmers must decide to support this
+  in their code. Luckily, this is fairly easy.
+  <p>
+  Note that because this system is not tightly coupled with the rest of
+  the SunXACML code, nor is it ever automatically invoked, you are still
+  free to define your own configuration mechanisms. In fact, you may
+  find that for a given application you want to re-use the configuration
+  schema, but support it in a custom manner in your code. That's
+  fine. The idea here is simply to provide a set of common, convenience
+  mechanisms that are available for everyone. In practice, the
+  functionality provided here is probably enough for most applications.
+  <p>
+  This guide is split into two main sections. The first section
+  describes the configuration schema, and therefore how you write
+  configuration descriptions. The second part describes a new class used
+  for loading and managing configurations. If you need more help you
+  should look at the schema itself, the javadocs, and the samples
+  available in the release package, which make use of this run-time
+  configuration system. This guide assumes you have some familiarity
+  with XACML and SunXACML, and specifically that you understand the
+  finder system and the various factories. These are described in detail
+  in the <a href="guide.html">Programmer's Guide</a>.
+
+  <h2><a name="schema">The Configuration Schema</a></h2>
+  Configurations are defined through a relatively simple XML encoding,
+  specified by an XML schema. Basically, a configuration defines a
+  collection of PDPs and Factories. A PDP configuration is defined by
+  the set of modules it contains, and how those modules are
+  configured. A Factory is defined by the datatypes, algorithms, or
+  functions it supports, and how they are configured. The schema
+  describing the configuration format used in the 1.2 release is
+  available <a href="http://sunxacml.sourceforge.net/schema/config-0.3.xsd">here</a>.
+  <p>
+  At its root, a configuration description starts with the
+  <code>config</code> tag, which contains some number of PDP and factory
+  descriptions. The <code>config</code> tag also requires you to
+  identify a default for each of these things:
+  <pre>
+     &lt;config defaultPDP="pdp" defaultAttributeFactory="attr"
+             defaultCombiningAlgFactory="comb" defaultFunctionFactory="func"&gt;
+       ...
+     &lt;/config&gt;
+  </pre>
+  Full examples are found at the end of this document.
+
+  <h4><a name="schema-pdp">PDP Configuration</a></h4>
+  A <code>pdp</code> entry takes the form of a name, and the set of
+  modules it contains:
+  <pre>
+  &lt;pdp name="pdp1"&gt;
+    ...
+  &lt;/pdp&gt;
+  </pre>
+  Each module in a PDP is specified using the appropriate kind of tag
+  (<code>attributeFinderModule</code>, <code>policyFinderModule</code>,
+  or <code>resourceFinderModule</code>), and names the class that should
+  actually be loaded (where the class is an implementation of
+  <code>com.sun.xacml.finder.AttributeFinderModule</code>,
+  <code>com.sun.xacml.finder.PolicyFinderModule</code>,
+  or <code>com.sun.xacml.finder.ResourceFinderModule</code>,
+  respectively). For instance, this element
+  <pre>
+  &lt;attributeFinderModule class="com.sun.xacml.finder.impl.CurrentEnvModule"/&gt;
+  </pre>
+  specifies an <code>AttributeFinderModule</code> to load. Note that the
+  class must be available in your classpath.
+  <p>
+  With all classes you load through this configuration system you may
+  specify arguments to the class' constructors. In the above example,
+  the default (empty) constructor is used. You may also specify
+  <code>String</code>s and <code>List</code>s parameters, as in:
+  <pre>
+  &lt;policyFinderModule class="com.sun.xacml.finder.impl.FilePolicyModule"&gt;
+    &lt;list&gt;
+      &lt;string&gt;policy1.xml&lt;/string&gt;
+      &lt;string&gt;policy2.xml&lt;/string&gt;
+    &lt;/list&gt;
+  &lt;/policyFinderModule&gt;
+  </pre>
+  This builds a <code>List</code> of <code>String</code>s, and
+  constructs a <code>com.sun.xacml.finder.impl.FilePolicyModule</code>
+  using a constructor that takes a single
+  <code>java.util.List</code>. Your modules may take any number of
+  arguments they like, but if the provided paramters don't match one
+  of the constructors of the class being loaded, then an exception is
+  thrown and loading the configuration fails.
+
+  <h4><a name="schema-factory">Factory Configuration</a></h4>
+  Like PDPs, factory definitions start with a name, and contain some set
+  of appropriate classes. Unlike the PDP elements, factory elements may
+  also contain an attribute that says to start with the standard
+  functionality:
+  <pre>
+  &lt;attributeFactory name="attrFactory1" useStandardDatatypes="true"&gt;
+    ...
+  &lt;/attributeFactory&gt;
+  </pre>
+  In this case, the attribute factory is pre-configured with support for
+  the standard datatypes. This is useful if you want a factory that
+  supports just a few things beyond the standard supported types.
+  <p>
+  Each factory is defined by the things it supports. An
+  <code>attributeFactory</code> element contains <code>datatype</code>
+  elements that supply a class and an identifier, where the class is an
+  implementation of <code>com.sun.xacml.attr.AttributeProxy<code>:
+  <pre>
+  &lt;datatype class="com.sun.xacml.attr.proxy.BooleanAttributeProxy"
+            identifier="http://www.w3.org/2001/XMLSchema#boolean"/&gt;
+  </pre>
+  A <code>combiningAlgFactory</code> contains <code>algorithm</code>
+  elements that specify a class, where the class is an implementation of
+  <code>com.sun.xacml.combine.PolicyCombiningAlgorithm</code> or
+  <code>com.sun.xacml.combine.RuleCombiningAlgorithm</code>:
+  <pre>
+  &lt;algorithm class="com.sun.xacml.combine.FirstApplicablePolicyAlg"/&gt;
+  </pre>
+  If you start with a factory supporting the standard datatypes or
+  algorithms, of course, you don't need to specify any standard
+  elements (like the datatype and algorithm shown above). Typically,
+  this feature is used to augment standard implementations by adding
+  some new types that you have defined. Note that it's illegal for a
+  factory to have more than one element with the same identifier. If you
+  try to specify such a factory then an exception is thrown and the
+  confoguration is invalid.
+  <p>
+  Note that as with a PDP's modules, any of the elements in a factory
+  may also be constructed using <code>String</code> or <code>List</code>
+  inputs. For complete examples, see the Examples section at the end of
+  this guide.
+  <p>
+  A <code>functionFactory</code> is a little more complex. Each
+  <code>functionFactory</code> contains three optional sections
+  (<code>target</code>, <code>condition</code>, and <code>general</code>),
+  where the functions here follow the standard "superset" relationship
+  described in the javadocs (ie, a condition function is also available
+  through the general collection, and a target function is available in
+  all three collections):
+  <pre>
+    &lt;functionFactory name="func" useStandardFunctions="true"&gt;
+      &lt;target&gt;
+        ...
+      &lt;/target&gt;
+      &lt;condition&gt;
+        ...
+      &lt;/condition&gt;
+      &lt;general&gt;
+        ...
+      &lt;/general&gt;
+    &lt;/functionFactory&gt;
+  </pre>
+  Each section contains <code>function</code>,
+  <code>abstractFunction</code>, and <code>functionCluster</code> elements.
+  <p>
+  A <code>function</code> element identifies a single function,
+  specifying a class of type <code>com.sun.xacml.cond.Function</code>:
+  <pre>
+  &lt;function class="TimeInRangeFunction"/&gt;
+  &lt;function class="com.sun.xacml.cond.EqualFunction"&gt;
+    &lt;string&gt;urn:oasis:names:tc:xacml:1.0:function:string-equal&lt;/string&gt;
+  &lt;/function&gt;
+  </pre>
+  An <code>abstractFunction</code> identifies a single abstract
+  function, specifying a class of type <code>FunctionProxy</code>:
+  <pre>
+  &lt;abstractFunction class="com.sun.xacml.cond.MapFunctionProxy"
+                    identifier="urn:oasis:names:tc:xacml:1.0:function:map"/&gt;
+  </pre>
+  A <code>functionCluster</code> is a convenience element that lets you
+  specify a group of functions (though not abstract functions) through
+  an implementation of
+  <code>com.sun.xacml.cond.cluster.FunctionCluster</code>:
+  <pre>
+  &lt;functionCluster class="com.sun.xacml.cond.cluster.EqualFunctionCluster"/&gt;
+  </pre>
+
+  <h4><a name="schema-tying">Tying Factories to PDPs<a></h4>
+  The one obvious missing piece of functionality is a way to specify
+  which factories are used by a given PDP. Unfortunately, this isn't
+  supported right now. Basically, it will require some API changes to
+  make this work, and since the 1.2 release tried to leave the APIs as
+  stable as possible, this feature was pushed off to 2.0. In the 2.0
+  release, the related APIs will have to change (since the code will be
+  supporting different versions of XACML), so this feature will be
+  added at that point.
+
+  <h2><a name="store">Supporting a Configuration: ConfigurationStore</a></h2>
+  Now that you've seen how a configuration is written, you need to
+  understand how to use that configuration in your code. Actually, this
+  is much easier than writing the configuration itself. In the 1.2
+  release a new class called <code>ConfigurationStore</code> was
+  introduced that takes care of handling all your configurations.
+  <p>
+  The <code>ConfigurationStore</code> is constructed directly, either
+  using the default constructor, or by supplying a <code>File</code>
+  that names the configuration data that is backing the store. In the
+  case of the default constructor, <code>ConfigurationStore</code> tries
+  to use the property <code>com.sun.xacml.PDPConfigFile</code> to get
+  the file that contains the configuration data. This means you can
+  either specify the configuration file explicitly
+  <pre>
+    File configFile = new File("config.xml");
+    ConfigurationStore store = new ConfigurationStore(configFile);
+  </pre>
+  or rely on a run-time property to supply the filename
+  <pre>
+    ConfigurationStore store = new ConfigurationStore();
+  </pre>
+  Note that in the 1.2 release you can only work with file-based
+  configurations. In the 2.0 release this mechanism will be extended to
+  support different retrieval mechanisms.
+  <p>
+  Once the store is created, there are accessor methods to ask for PDPs
+  and factories. You can ask for a specific named element (as identified
+  by the name attribute on the pdp or factory element tag), or for a
+  default element. You can also ask for the identifiers for all supported
+  elements. In this way, you pick which pieces of the configuration you
+  want to use any parts of your code.
+  <p>
+  In addition to querying for specific factory configurations, the
+  <code>ConfigurationStore</code> also provides a convenience method
+  called <code>useDefaultFactories</code>, which (as the name suggests)
+  sets the system-wide default factories to the defaults specified in the
+  configuration. For many people, this is all the functionality they
+  need for factory handling. Note that since the factory functionality
+  will change in 2.0 (so factories can be paired with PDPs), this method
+  will become less useful in the next major release.
+
+  <h2><a name="example">Examples</a></h2>
+  What follows here are a few simple examples that demonstrate most of
+  the features in this configuration system. For more examples, you
+  should look in the 1.2 release and in the conformance package, both of
+  which contain examples of how to use configurations.
+  <p>
+  <h4><a name="example-1">A Simple Example</a></h4>
+  Here is a basic example that provides a technically correct, though
+  functionally useless configuration:
+  <pre>
+  &lt;config defaultPDP="pdp" defaultAttributeFactory="attr"
+          defaultCombiningAlgFactory="comb" defaultFunctionFactory="func"&gt;
+    &lt;pdp name="pdp"/&gt;
+    &lt;attributeFactory name="attr" useStandardDatatypes="false"/&gt;
+    &lt;combiningAlgFactory name="comb" useStandardAlgorithms="false"/&gt;
+    &lt;functionFactory name="func" useStandardFunctions="false"/&gt;
+  &lt;/config&gt;
+  </pre>
+  Note that it provides a single PDP with no modules, and a set of
+  factories that support no features. A slightly more useful
+  configuration might look like this:
+  <pre>
+  &lt;config defaultPDP="pdp" defaultAttributeFactory="attr"
+          defaultCombiningAlgFactory="comb" defaultFunctionFactory="func"&gt;
+    &lt;pdp name="pdp"&gt;
+      &lt;attributeFinderModule class="com.sun.xacml.finder.impl.CurrentEnvModule"/&gt;
+      &lt;attributeFinderModule class="com.sun.xacml.finder.impl.SelectorModule"/&gt;
+    &lt;/pdp&gt;
+    &lt;attributeFactory name="attr" useStandardDatatypes="true"/&gt;
+    &lt;combiningAlgFactory name="comb" useStandardAlgorithms="true"/&gt;
+    &lt;functionFactory name="func" useStandardFunctions="true"/&gt;
+  &lt;/config&gt;
+  </pre>
+  This provides default factories that support all standard features,
+  and configures the default PDP with two commonly useful finder
+  modules. You might extend this example even further by providing
+  support for the <code>TimeInRangeFunction</code> which isn't in the
+  standard <code>FunctionFactory</code> yet because it won't be part of
+  the specification until 2.0:
+  <pre>
+  &lt;config defaultPDP="pdp" defaultAttributeFactory="attr"
+          defaultCombiningAlgFactory="comb" defaultFunctionFactory="func"&gt;
+    &lt;pdp name="pdp"&gt;
+      &lt;attributeFinderModule class="com.sun.xacml.finder.impl.CurrentEnvModule"/&gt;
+      &lt;attributeFinderModule class="com.sun.xacml.finder.impl.SelectorModule"/&gt;
+    &lt;/pdp&gt;
+    &lt;attributeFactory name="attr" useStandardDatatypes="true"/&gt;
+    &lt;combiningAlgFactory name="comb" useStandardAlgorithms="true"/&gt;
+    &lt;functionFactory name="func" useStandardFunctions="true"&gt;
+      &lt;condition&gt;
+        &lt;function class="TimeInRangeFunction"/&gt;
+      &lt;/condition&gt;
+    &lt;/functionFactory&gt;
+  &lt;/config&gt;
+  </pre>
+  Simple, huh? What you see here is a fully functional configuration
+  that you could start using to define your XACML environment.
+  
+  <h4><a name="example-2">Configuring A Module</a></h4>
+  The final of the three previous examples shows a fairly useful
+  configuration, but it's missing a key component: a
+  <code>PolicyFinderModule</code>. Without one of these modules, your
+  PDP will never be able to fetch policies. You can, of course, load the
+  above configuration and then add other modules in your code, or you
+  can add the module directly to your configuration.
+  <p>
+  An easy module to try loading is the <code>FilePolicyModule</code>
+  example module. This finder module provides policies from the local
+  filesystem, and so it needs to be pre-configured with policy
+  files. This is easily done in the configuration (as shown before in
+  the schema section):
+  <pre>
+  &lt;config defaultPDP="pdp" defaultAttributeFactory="attr"
+          defaultCombiningAlgFactory="comb" defaultFunctionFactory="func"&gt;
+    &lt;pdp name="pdp"&gt;
+      &lt;attributeFinderModule class="com.sun.xacml.finder.impl.CurrentEnvModule"/&gt;
+      &lt;attributeFinderModule class="com.sun.xacml.finder.impl.SelectorModule"/&gt;
+      &lt;policyFinderModule class="com.sun.xacml.finder.impl.FilePolicyModule"&gt;
+        &lt;list&gt;
+          &lt;string&gt;policy1.xml&lt;/string&gt;
+          &lt;string&gt;policy2.xml&lt;/string&gt;
+        &lt;/list&gt;
+      &lt;/policyFinderModule&gt;
+    &lt;/pdp&gt;
+    &lt;attributeFactory name="attr" useStandardDatatypes="true"/&gt;
+    &lt;combiningAlgFactory name="comb" useStandardAlgorithms="true"/&gt;
+    &lt;functionFactory name="func" useStandardFunctions="true"&gt;
+      &lt;condition&gt;
+        &lt;function class="TimeInRangeFunction"/&gt;
+      &lt;/condition&gt;
+    &lt;/functionFactory&gt;
+  &lt;/config&gt;
+  </pre>
+  <p>
+  <hr>
+  <font size="-1">
+    Send comments, questions, and corrections to
+    <a href="mailto:sethp@users.sourceforge.net">seth proctor</a>.
+    <p>
+    Copyright 2003-2004 Sun Microsystems, Inc. All rights reserved. Use is
+    subject to license terms.
+    <p>
+    Sun, Sun Microsystems, the Sun Logo, and Java are trademarks or
+    registered trademarks of Sun Microsystems, Inc. in the US and other
+    countries.
+  </font>
+</body>
+</html>

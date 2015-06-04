@@ -1,0 +1,34 @@
+!SESSION 2015-06-04 16:09:10.349 -----------------------------------------------
+eclipse.buildId=4.3.2.M20140221-1700
+java.version=1.8.0_45
+java.vendor=Oracle Corporation
+BootLoader constants: OS=linux, ARCH=x86_64, WS=gtk, NL=en_US
+Framework arguments:  -product org.eclipse.epp.package.jee.product
+Command-line arguments:  -os linux -ws gtk -arch x86_64 -product org.eclipse.epp.package.jee.product
+
+!ENTRY org.eclipse.jface 2 0 2015-06-04 16:09:23.126
+!MESSAGE Keybinding conflicts occurred.  They may interfere with normal accelerator operation.
+!SUBENTRY 1 org.eclipse.jface 2 0 2015-06-04 16:09:23.126
+!MESSAGE A conflict occurred for CTRL+6:
+Binding(CTRL+6,
+	ParameterizedCommand(Command(org.wso2.developerstudio.eclipse.platform.ui.commands.sampleCommand,Sample Command,
+		,
+		Category(org.wso2.developerstudio.eclipse.platform.ui.commands.category,Sample Category,null,true),
+		org.eclipse.ui.internal.WorkbenchHandlerServiceHandler@4317850d,
+		,,true),null),
+	org.eclipse.ui.defaultAcceleratorConfiguration,
+	org.eclipse.ui.contexts.window,,,system)
+Binding(CTRL+6,
+	ParameterizedCommand(Command(com.vaadin.integration.eclipse.commands.compileWidgetsetCommand,Compile Widgetset Command,
+		,
+		Category(com.vaadin.integration.eclipse.commands.category,Vaadin Category,null,true),
+		org.eclipse.ui.internal.WorkbenchHandlerServiceHandler@7e4c72d6,
+		,,true),null),
+	org.eclipse.ui.defaultAcceleratorConfiguration,
+	org.eclipse.ui.contexts.window,,,system)
+
+!ENTRY org.apache.ivyde.eclipse 1 0 2015-06-04 16:10:06.844
+!MESSAGE starting IvyDE plugin
+
+!ENTRY org.apache.ivyde.eclipse 1 0 2015-06-04 16:10:06.913
+!MESSAGE IvyDE plugin started
